@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
+from fpdf import FPDF
 
 # Configure the Streamlit page
 st.set_page_config(
@@ -64,6 +65,20 @@ def apply_penalty_rates(start, end, hourly_rate):
     regular_income = (base_hours - penalty_hours) * hourly_rate
     penalty_income = penalty_hours * hourly_rate * PENALTY_RATE_MULTIPLIER
     return base_hours, regular_income, penalty_income
+
+# Generate PDF
+def generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Income Breakdown", ln=True, align="C")
+    pdf.cell(200, 10, txt=f"Position: {position}", ln=True, align="L")
+    pdf.cell(200, 10, txt=f"Gross Income: ${gross_income:.2f}", ln=True, align="L")
+    pdf.cell(200, 10, txt=f"Taxes Owed: ${period_tax:.2f}", ln=True, align="L")
+    pdf.cell(200, 10, txt=f"Net Income: ${net_income:.2f}", ln=True, align="L")
+    pdf.cell(200, 10, txt=f"Superannuation Contribution: ${period_superannuation:.2f}", ln=True, align="L")
+    pdf.cell(200, 10, txt=f"Income Minus Tax and Super: ${income_minus_tax_and_super:.2f}", ln=True, align="L")
+    pdf.output("income_breakdown.pdf")
 
 # Learn Section Functions
 def learn_entitlements():
@@ -278,3 +293,37 @@ else:
             )
             fig.update_layout(title="Income Breakdown")
             st.plotly_chart(fig, use_container_width=True)
+
+            # Generate PDF Button
+            if st.button("Download PDF"):
+                generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super)
+                with open("income_breakdown.pdf", "rb") as pdf_file:
+                    st.download_button(label="Download PDF", data=pdf_file, file_name="income_breakdown.pdf", mime="application/pdf")
+
+            # Display relevant entitlements based on position type
+            st.header("Relevant Entitlements")
+            if position == "Full-time":
+                st.markdown("""
+                - Annual leave: 4 weeks per year.
+                - Personal/carer's leave: 10 days per year.
+                - Public holidays: Paid if you normally work on the day.
+                """)
+            elif position == "Part-time":
+                st.markdown("""
+                - Annual leave: Pro-rata based on hours worked.
+                - Personal/carer's leave: Pro-rata based on hours worked.
+                - Public holidays: Paid if you normally work on the day.
+                """)
+            else:
+                st.markdown("""
+                - Casual loading: Typically 25% higher pay rate.
+                - No paid leave entitlements.
+                - Public holidays: Unpaid unless you work on the day.
+                """)
+
+    # Disclaimer and Links
+    st.markdown("""
+    **Disclaimer:** This tool provides general information only and does not constitute financial advice. For more detailed information, please refer to the following resources:
+    - [Fair Work Commission](https://www.fwc.gov.au/)
+    - [Australian Taxation Office (ATO)](https://www.ato.gov.au/)
+    """)
