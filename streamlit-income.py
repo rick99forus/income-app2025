@@ -24,6 +24,8 @@ if "header_section" not in st.session_state:
     st.session_state["header_section"] = "home"
 if "income_data" not in st.session_state:
     st.session_state["income_data"] = []
+if "edit_index" not in st.session_state:
+    st.session_state["edit_index"] = None
 
 # Navigation Functions
 def navigate_to(section):
@@ -225,13 +227,13 @@ else:
     # Income Form (Left Column)
     with col1:
         st.header("Income Form")
-        position = st.selectbox("Position Type", ["Full-time", "Part-time", "Casual"])
-        shift_type = st.selectbox("Shift Type", ["Day", "Afternoon", "Night"])
-        start_time = st.text_input("Start Time (HH:MM AM/PM):", "09:00 AM")
-        end_time = st.text_input("End Time (HH:MM AM/PM):", "05:00 PM")
-        hourly_rate = st.number_input("Hourly Rate ($)", min_value=0.0, step=0.5)
-        days_worked = st.multiselect("Days Worked", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-        period = st.selectbox("Select Income Period:", ["Weekly", "Fortnightly", "Monthly", "Yearly"])
+        position = st.selectbox("Position Type", ["Full-time", "Part-time", "Casual"], index=st.session_state.get("edit_position_index", 0))
+        shift_type = st.selectbox("Shift Type", ["Day", "Afternoon", "Night"], index=st.session_state.get("edit_shift_type_index", 0))
+        start_time = st.text_input("Start Time (HH:MM AM/PM):", st.session_state.get("edit_start_time", "09:00 AM"))
+        end_time = st.text_input("End Time (HH:MM AM/PM):", st.session_state.get("edit_end_time", "05:00 PM"))
+        hourly_rate = st.number_input("Hourly Rate ($)", min_value=0.0, step=0.5, value=st.session_state.get("edit_hourly_rate", 0.0))
+        days_worked = st.multiselect("Days Worked", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], default=st.session_state.get("edit_days_worked", []))
+        period = st.selectbox("Select Income Period:", ["Weekly", "Fortnightly", "Monthly", "Yearly"], index=st.session_state.get("edit_period_index", 0))
 
     # Income Results (Right Column)
     with col2:
@@ -273,17 +275,44 @@ else:
             st.metric("Superannuation Contribution", f"${period_superannuation:.2f}")
             st.metric("Income Minus Tax and Super", f"${income_minus_tax_and_super:.2f}")
 
-            # Store Results Button
-            if st.button("Store Results"):
-                week_number = datetime.now().isocalendar()[1]
-                st.session_state["income_data"].append({
-                    "week": week_number,
-                    "gross_income": gross_income,
-                    "taxes_owed": period_tax,
-                    "net_income": net_income,
-                    "superannuation": period_superannuation,
-                    "income_minus_tax_and_super": income_minus_tax_and_super
-                })
+            # Store or Update Results Button
+            if st.session_state["edit_index"] is None:
+                if st.button("Store Results"):
+                    week_number = datetime.now().isocalendar()[1]
+                    st.session_state["income_data"].append({
+                        "week": week_number,
+                        "position": position,
+                        "shift_type": shift_type,
+                        "start_time": start_time,
+                        "end_time": end_time,
+                        "hourly_rate": hourly_rate,
+                        "days_worked": days_worked,
+                        "period": period,
+                        "gross_income": gross_income,
+                        "taxes_owed": period_tax,
+                        "net_income": net_income,
+                        "superannuation": period_superannuation,
+                        "income_minus_tax_and_super": income_minus_tax_and_super
+                    })
+            else:
+                if st.button("Update Results"):
+                    index = st.session_state["edit_index"]
+                    st.session_state["income_data"][index] = {
+                        "week": st.session_state["income_data"][index]["week"],
+                        "position": position,
+                        "shift_type": shift_type,
+                        "start_time": start_time,
+                        "end_time": end_time,
+                        "hourly_rate": hourly_rate,
+                        "days_worked": days_worked,
+                        "period": period,
+                        "gross_income": gross_income,
+                        "taxes_owed": period_tax,
+                        "net_income": net_income,
+                        "superannuation": period_superannuation,
+                        "income_minus_tax_and_super": income_minus_tax_and_super
+                    }
+                    st.session_state["edit_index"] = None
 
             # Display relevant entitlements based on position type
             st.header("Relevant Entitlements")
@@ -308,17 +337,61 @@ else:
 
     # Sidebar to display stored income data
     st.sidebar.header("Stored Income Data")
-    for data in st.session_state["income_data"]:
+    for index, data in enumerate(st.session_state["income_data"]):
         st.sidebar.markdown(f"""
         <div style="background-color: #f0f0f0; color: #333; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); padding: 10px; margin-bottom: 10px;">
             <strong>Week {data['week']}</strong><br>
             Gross Income: ${data['gross_income']:.2f}
+            <br>
+            <button onclick="Streamlit.setComponentValue('edit_{index}')">Edit</button>
+            <button onclick="Streamlit.setComponentValue('view_{index}')">View</button>
+            <button onclick="Streamlit.setComponentValue('delete_{index}')">Delete</button>
         </div>
         """, unsafe_allow_html=True)
 
-    # Disclaimer and Links
-    st.markdown("""
-    **Disclaimer:** This tool provides general information only and does not constitute financial advice. For more detailed information, please refer to the following resources:
-    - [Fair Work Commission](https://www.fwc.gov.au/)
-    - [Australian Taxation Office (ATO)](https://www.ato.gov.au/)
-    """)
+    # Handle sidebar button clicks
+    for index, data in enumerate(st.session_state["income_data"]):
+        if st.session_state.get(f"edit_{index}"):
+            st.session_state["edit_index"] = index
+            st.session_state["edit_position_index"] = ["Full-time", "Part-time", "Casual"].index(data["position"])
+            st.session_state["edit_shift_type_index"] = ["Day", "Afternoon", "Night"].index(data["shift_type"])
+            st.session_state["edit_start_time"] = data["start_time"]
+            st.session_state["edit_end_time"] = data["end_time"]
+            st.session_state["edit_hourly_rate"] = data["hourly_rate"]
+            st.session_state["edit_days_worked"] = data["days_worked"]
+            st.session_state["edit_period_index"] = ["Weekly", "Fortnightly", "Monthly", "Yearly"].index(data["period"])
+            st.experimental_rerun()
+        elif st.session_state.get(f"view_{index}"):
+            st.session_state["view_index"] = index
+            st.session_state["header_section"] = "view"
+            st.experimental_rerun()
+        elif st.session_state.get(f"delete_{index}"):
+            del st.session_state["income_data"][index]
+            st.experimental_rerun()
+
+# View Section
+if st.session_state["header_section"] == "view":
+    index = st.session_state["view_index"]
+    data = st.session_state["income_data"][index]
+    st.title(f"Income Breakdown for Week {data['week']}")
+    st.metric("Gross Income", f"${data['gross_income']:.2f}")
+    st.metric("Taxes Owed", f"${data['taxes_owed']:.2f}")
+    st.metric("Net Income", f"${data['net_income']:.2f}")
+    st.metric("Superannuation Contribution", f"${data['superannuation']:.2f}")
+    st.metric("Income Minus Tax and Super", f"${data['income_minus_tax_and_super']:.2f}")
+
+    # Income Breakdown Chart
+    fig = go.Figure(
+        go.Pie(
+            labels=["Net Income", "Taxes Owed", "Superannuation"],
+            values=[data['net_income'], data['taxes_owed'], data['superannuation']],
+            hole=0.4
+        )
+    )
+    fig.update_layout(title="Income Breakdown")
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Back Button
+    if st.button("Back"):
+        st.session_state["header_section"] = "home"
+        st.experimental_rerun()
