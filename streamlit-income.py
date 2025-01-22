@@ -22,6 +22,8 @@ if "page" not in st.session_state:
     st.session_state["page"] = 0
 if "header_section" not in st.session_state:
     st.session_state["header_section"] = "home"
+if "income_data" not in st.session_state:
+    st.session_state["income_data"] = []
 
 # Navigation Functions
 def navigate_to(section):
@@ -91,11 +93,7 @@ def generate_pdf(position, gross_income, period_tax, net_income, period_superann
     pdf.cell(200, 10, txt=f"Net Income: ${net_income:.2f}", ln=True, align="L")
     pdf.cell(200, 10, txt=f"Superannuation Contribution: ${period_superannuation:.2f}", ln=True, align="L")
     pdf.cell(200, 10, txt=f"Income Minus Tax and Super: ${income_minus_tax_and_super:.2f}", ln=True, align="L")
-    
-    # Save the plotly figure as an image
-    fig.write_image("income_breakdown.png")
-    pdf.image("income_breakdown.png", x=10, y=80, w=190)
-    
+     
     # Entitlements
     pdf.set_font("Arial", 'B', 14)
     pdf.cell(200, 10, txt="Relevant Entitlements", ln=True, align="L")
@@ -333,22 +331,16 @@ else:
             st.metric("Superannuation Contribution", f"${period_superannuation:.2f}")
             st.metric("Income Minus Tax and Super", f"${income_minus_tax_and_super:.2f}")
 
-            # Income Breakdown Chart
-            fig = go.Figure(
-                go.Pie(
-                    labels=["Net Income", "Taxes Owed", "Superannuation"],
-                    values=[net_income, period_tax, period_superannuation],
-                    hole=0.4
-                )
-            )
-            fig.update_layout(title="Income Breakdown")
-            st.plotly_chart(fig, use_container_width=True)
-
-            # Generate PDF Button
-            if st.button("Download PDF"):
-                generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super, fig)
-                with open("income_breakdown.pdf", "rb") as pdf_file:
-                    st.download_button(label="Download PDF", data=pdf_file, file_name="income_breakdown.pdf", mime="application/pdf")
+            # Store the income breakdown in session state
+            week_number = datetime.now().isocalendar()[1]
+            st.session_state["income_data"].append({
+                "week": week_number,
+                "gross_income": gross_income,
+                "taxes_owed": period_tax,
+                "net_income": net_income,
+                "superannuation": period_superannuation,
+                "income_minus_tax_and_super": income_minus_tax_and_super
+            })
 
             # Display relevant entitlements based on position type
             st.header("Relevant Entitlements")
@@ -370,6 +362,16 @@ else:
                 - No paid leave entitlements.
                 - Public holidays: Unpaid unless you work on the day.
                 """)
+
+    # Sidebar to display stored income data
+    st.sidebar.header("Stored Income Data")
+    for data in st.session_state["income_data"]:
+        st.sidebar.markdown(f"""
+        <div style="box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); padding: 10px; margin-bottom: 10px;">
+            <strong>Week {data['week']}</strong><br>
+            Gross Income: ${data['gross_income']:.2f}
+        </div>
+        """, unsafe_allow_html=True)
 
     # Disclaimer and Links
     st.markdown("""
