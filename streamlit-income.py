@@ -273,16 +273,17 @@ else:
             st.metric("Superannuation Contribution", f"${period_superannuation:.2f}")
             st.metric("Income Minus Tax and Super", f"${income_minus_tax_and_super:.2f}")
 
-            # Store the income breakdown in session state
-            week_number = datetime.now().isocalendar()[1]
-            st.session_state["income_data"].append({
-                "week": week_number,
-                "gross_income": gross_income,
-                "taxes_owed": period_tax,
-                "net_income": net_income,
-                "superannuation": period_superannuation,
-                "income_minus_tax_and_super": income_minus_tax_and_super
-            })
+            # Store Results Button
+            if st.button("Store Results"):
+                week_number = datetime.now().isocalendar()[1]
+                st.session_state["income_data"].append({
+                    "week": week_number,
+                    "gross_income": gross_income,
+                    "taxes_owed": period_tax,
+                    "net_income": net_income,
+                    "superannuation": period_superannuation,
+                    "income_minus_tax_and_super": income_minus_tax_and_super
+                })
 
             # Display relevant entitlements based on position type
             st.header("Relevant Entitlements")
@@ -309,7 +310,7 @@ else:
     st.sidebar.header("Stored Income Data")
     for data in st.session_state["income_data"]:
         st.sidebar.markdown(f"""
-        <div style="background-color: #f0f0f0; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); padding: 10px; margin-bottom: 10px;">
+        <div style="background-color: #f0f0f0; color: #333; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); padding: 10px; margin-bottom: 10px;">
             <strong>Week {data['week']}</strong><br>
             Gross Income: ${data['gross_income']:.2f}
         </div>
