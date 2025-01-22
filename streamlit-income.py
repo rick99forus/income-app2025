@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from fpdf import FPDF
+import matplotlib.pyplot as plt
 
 # Configure the Streamlit page
 st.set_page_config(
@@ -14,6 +15,7 @@ st.set_page_config(
 # Constants
 SUPER_RATE = 0.11
 PENALTY_RATE_MULTIPLIER = 1.5
+BUSINESS_NAME = "Make It Simple Pty Ltd"
 
 # Initialize session state
 if "page" not in st.session_state:
@@ -67,17 +69,65 @@ def apply_penalty_rates(start, end, hourly_rate):
     return base_hours, regular_income, penalty_income
 
 # Generate PDF
-def generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super):
+def generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super, fig):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
+    
+    # Business name
+    pdf.cell(0, 10, BUSINESS_NAME, ln=True, align="R")
+    
+    # Title
+    pdf.set_font("Arial", 'B', 16)
     pdf.cell(200, 10, txt="Income Breakdown", ln=True, align="C")
+    
+    # Position
+    pdf.set_font("Arial", size=12)
     pdf.cell(200, 10, txt=f"Position: {position}", ln=True, align="L")
+    
+    # Income details
     pdf.cell(200, 10, txt=f"Gross Income: ${gross_income:.2f}", ln=True, align="L")
     pdf.cell(200, 10, txt=f"Taxes Owed: ${period_tax:.2f}", ln=True, align="L")
     pdf.cell(200, 10, txt=f"Net Income: ${net_income:.2f}", ln=True, align="L")
     pdf.cell(200, 10, txt=f"Superannuation Contribution: ${period_superannuation:.2f}", ln=True, align="L")
     pdf.cell(200, 10, txt=f"Income Minus Tax and Super: ${income_minus_tax_and_super:.2f}", ln=True, align="L")
+    
+    # Save the plotly figure as an image
+    fig.write_image("income_breakdown.png")
+    pdf.image("income_breakdown.png", x=10, y=80, w=190)
+    
+    # Entitlements
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(200, 10, txt="Relevant Entitlements", ln=True, align="L")
+    pdf.set_font("Arial", size=12)
+    if position == "Full-time":
+        pdf.multi_cell(0, 10, """
+        - Annual leave: 4 weeks per year.
+        - Personal/carer's leave: 10 days per year.
+        - Public holidays: Paid if you normally work on the day.
+        """)
+    elif position == "Part-time":
+        pdf.multi_cell(0, 10, """
+        - Annual leave: Pro-rata based on hours worked.
+        - Personal/carer's leave: Pro-rata based on hours worked.
+        - Public holidays: Paid if you normally work on the day.
+        """)
+    else:
+        pdf.multi_cell(0, 10, """
+        - Casual loading: Typically 25% higher pay rate.
+        - No paid leave entitlements.
+        - Public holidays: Unpaid unless you work on the day.
+        """)
+    
+    # Disclaimer
+    pdf.set_y(-30)
+    pdf.set_font("Arial", 'I', 10)
+    pdf.multi_cell(0, 10, """
+    **Disclaimer:** This tool provides general information only and does not constitute financial advice. For more detailed information, please refer to the following resources:
+    - Fair Work Commission: https://www.fwc.gov.au/
+    - Australian Taxation Office (ATO): https://www.ato.gov.au/
+    """)
+    
     pdf.output("income_breakdown.pdf")
 
 # Learn Section Functions
@@ -296,7 +346,7 @@ else:
 
             # Generate PDF Button
             if st.button("Download PDF"):
-                generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super)
+                generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super, fig)
                 with open("income_breakdown.pdf", "rb") as pdf_file:
                     st.download_button(label="Download PDF", data=pdf_file, file_name="income_breakdown.pdf", mime="application/pdf")
 
