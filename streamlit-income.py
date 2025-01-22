@@ -70,64 +70,6 @@ def apply_penalty_rates(start, end, hourly_rate):
     penalty_income = penalty_hours * hourly_rate * PENALTY_RATE_MULTIPLIER
     return base_hours, regular_income, penalty_income
 
-# Generate PDF
-def generate_pdf(position, gross_income, period_tax, net_income, period_superannuation, income_minus_tax_and_super, fig):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    
-    # Business name
-    pdf.cell(0, 10, BUSINESS_NAME, ln=True, align="R")
-    
-    # Title
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, txt="Income Breakdown", ln=True, align="C")
-    
-    # Position
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt=f"Position: {position}", ln=True, align="L")
-    
-    # Income details
-    pdf.cell(200, 10, txt=f"Gross Income: ${gross_income:.2f}", ln=True, align="L")
-    pdf.cell(200, 10, txt=f"Taxes Owed: ${period_tax:.2f}", ln=True, align="L")
-    pdf.cell(200, 10, txt=f"Net Income: ${net_income:.2f}", ln=True, align="L")
-    pdf.cell(200, 10, txt=f"Superannuation Contribution: ${period_superannuation:.2f}", ln=True, align="L")
-    pdf.cell(200, 10, txt=f"Income Minus Tax and Super: ${income_minus_tax_and_super:.2f}", ln=True, align="L")
-     
-    # Entitlements
-    pdf.set_font("Arial", 'B', 14)
-    pdf.cell(200, 10, txt="Relevant Entitlements", ln=True, align="L")
-    pdf.set_font("Arial", size=12)
-    if position == "Full-time":
-        pdf.multi_cell(0, 10, """
-        - Annual leave: 4 weeks per year.
-        - Personal/carer's leave: 10 days per year.
-        - Public holidays: Paid if you normally work on the day.
-        """)
-    elif position == "Part-time":
-        pdf.multi_cell(0, 10, """
-        - Annual leave: Pro-rata based on hours worked.
-        - Personal/carer's leave: Pro-rata based on hours worked.
-        - Public holidays: Paid if you normally work on the day.
-        """)
-    else:
-        pdf.multi_cell(0, 10, """
-        - Casual loading: Typically 25% higher pay rate.
-        - No paid leave entitlements.
-        - Public holidays: Unpaid unless you work on the day.
-        """)
-    
-    # Disclaimer
-    pdf.set_y(-30)
-    pdf.set_font("Arial", 'I', 10)
-    pdf.multi_cell(0, 10, """
-    **Disclaimer:** This tool provides general information only and does not constitute financial advice. For more detailed information, please refer to the following resources:
-    - Fair Work Commission: https://www.fwc.gov.au/
-    - Australian Taxation Office (ATO): https://www.ato.gov.au/
-    """)
-    
-    pdf.output("income_breakdown.pdf")
-
 # Learn Section Functions
 def learn_entitlements():
     st.title("Learn Your Entitlements")
@@ -367,7 +309,7 @@ else:
     st.sidebar.header("Stored Income Data")
     for data in st.session_state["income_data"]:
         st.sidebar.markdown(f"""
-        <div style="box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); padding: 10px; margin-bottom: 10px;">
+        <div style="background-color: #f0f0f0; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); padding: 10px; margin-bottom: 10px;">
             <strong>Week {data['week']}</strong><br>
             Gross Income: ${data['gross_income']:.2f}
         </div>
