@@ -178,6 +178,27 @@ header_style = """
     background-color: #2196F3;
     margin: 5px;
 }
+
+.sidebar-item {
+    position: relative;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f0f0f0;
+    color: #333;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-item:hover .sidebar-buttons {
+    display: block;
+}
+
+.sidebar-buttons {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
 </style>
 <div class="header">
     <div class="title">TaxImple</div>
@@ -367,28 +388,38 @@ else:
     for index, data in enumerate(st.session_state["income_data"]):
         with st.sidebar:
             st.markdown(f"""
-            <div style="background-color: #f0f0f0; color: #333; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); padding: 10px; margin-bottom: 10px;">
+            <div class="sidebar-item">
                 <strong>Week {data['week']}</strong><br>
                 Gross Income: ${data['gross_income']:.2f}
+                <div class="sidebar-buttons">
+                    <button onclick="window.location.href='?edit_index={index}'">Edit</button>
+                    <button onclick="window.location.href='?view_index={index}'">View</button>
+                    <button onclick="window.location.href='?delete_index={index}'">Delete</button>
+                </div>
             </div>
             """, unsafe_allow_html=True)
-            if st.button(f"Edit {index}"):
-                st.session_state["edit_index"] = index
-                st.session_state["edit_position_index"] = ["Full-time", "Part-time", "Casual"].index(data["position"])
-                st.session_state["edit_shift_type_index"] = ["Day", "Afternoon", "Night"].index(data["shift_type"])
-                st.session_state["edit_start_time"] = data["start_time"]
-                st.session_state["edit_end_time"] = data["end_time"]
-                st.session_state["edit_hourly_rate"] = data["hourly_rate"]
-                st.session_state["edit_days_worked"] = data["days_worked"]
-                st.session_state["edit_period_index"] = ["Weekly", "Fortnightly", "Monthly", "Yearly"].index(data["period"])
-                st.experimental_rerun()
-            if st.button(f"View {index}"):
-                st.session_state["view_index"] = index
-                st.session_state["header_section"] = "view"
-                st.experimental_rerun()
-            if st.button(f"Delete {index}"):
-                del st.session_state["income_data"][index]
-                st.experimental_rerun()
+
+    # Handle sidebar button clicks
+    if "edit_index" in st.experimental_get_query_params():
+        index = int(st.experimental_get_query_params()["edit_index"][0])
+        st.session_state["edit_index"] = index
+        st.session_state["edit_position_index"] = ["Full-time", "Part-time", "Casual"].index(st.session_state["income_data"][index]["position"])
+        st.session_state["edit_shift_type_index"] = ["Day", "Afternoon", "Night"].index(st.session_state["income_data"][index]["shift_type"])
+        st.session_state["edit_start_time"] = st.session_state["income_data"][index]["start_time"]
+        st.session_state["edit_end_time"] = st.session_state["income_data"][index]["end_time"]
+        st.session_state["edit_hourly_rate"] = st.session_state["income_data"][index]["hourly_rate"]
+        st.session_state["edit_days_worked"] = st.session_state["income_data"][index]["days_worked"]
+        st.session_state["edit_period_index"] = ["Weekly", "Fortnightly", "Monthly", "Yearly"].index(st.session_state["income_data"][index]["period"])
+        st.experimental_rerun()
+    elif "view_index" in st.experimental_get_query_params():
+        index = int(st.experimental_get_query_params()["view_index"][0])
+        st.session_state["view_index"] = index
+        st.session_state["header_section"] = "view"
+        st.experimental_rerun()
+    elif "delete_index" in st.experimental_get_query_params():
+        index = int(st.experimental_get_query_params()["delete_index"][0])
+        del st.session_state["income_data"][index]
+        st.experimental_rerun()
 
 # Disclaimer and Links
 st.markdown("""
