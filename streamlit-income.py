@@ -400,8 +400,8 @@ else:
             """, unsafe_allow_html=True)
 
     # Handle sidebar button clicks
-    if "edit_index" in st.experimental_get_query_params():
-        index = int(st.experimental_get_query_params()["edit_index"][0])
+    if "edit_index" in st.query_params:
+        index = int(st.query_params["edit_index"][0])
         st.session_state["edit_index"] = index
         st.session_state["edit_position_index"] = ["Full-time", "Part-time", "Casual"].index(st.session_state["income_data"][index]["position"])
         st.session_state["edit_shift_type_index"] = ["Day", "Afternoon", "Night"].index(st.session_state["income_data"][index]["shift_type"])
@@ -411,13 +411,13 @@ else:
         st.session_state["edit_days_worked"] = st.session_state["income_data"][index]["days_worked"]
         st.session_state["edit_period_index"] = ["Weekly", "Fortnightly", "Monthly", "Yearly"].index(st.session_state["income_data"][index]["period"])
         st.experimental_rerun()
-    elif "view_index" in st.query_params():
-        index = int(st.query_params()["view_index"][0])
+    elif "view_index" in st.query_params:
+        index = int(st.query_params["view_index"][0])
         st.session_state["view_index"] = index
         st.session_state["header_section"] = "view"
         st.experimental_rerun()
-    elif "delete_index" in st.query_params():
-        index = int(st.query_params()["delete_index"][0])
+    elif "delete_index" in st.query_params:
+        index = int(st.query_params["delete_index"][0])
         del st.session_state["income_data"][index]
         st.experimental_rerun()
 
