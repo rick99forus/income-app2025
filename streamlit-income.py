@@ -304,7 +304,7 @@ else:
     # Income Results (Right Column)
     with col2:
         st.header("Results")
-        if not start_time or not end_time or hourly_rate <= 0 or not days_worked:
+        if not start_time_input or not end_time_input or hourly_rate <= 0 or not days_worked:
             st.warning("Please fill out all inputs to view results.")
         else:
             total_hours, total_income, total_penalty_income = 0, 0, 0
