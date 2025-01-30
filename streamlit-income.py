@@ -314,9 +314,9 @@ else:
             else:
                 income_multiplier = 52
 
+            total_hours *= income_multiplier
             total_income *= income_multiplier
             total_penalty_income *= income_multiplier
-            total_hours *= income_multiplier
 
             gross_income = total_income + total_penalty_income
             yearly_income = gross_income * (52 / income_multiplier)
@@ -326,6 +326,7 @@ else:
             net_income = gross_income - period_tax
             income_minus_tax_and_super = gross_income - period_tax - period_superannuation
 
+            st.metric("Total Hours", f"{total_hours:.2f}")
             st.metric("Gross Income", f"${gross_income:.2f}")
             st.metric("Taxes Owed", f"${period_tax:.2f}")
             st.metric("Net Income", f"${net_income:.2f}")
