@@ -213,8 +213,7 @@ header_style = """
     display: none;
     position: absolute;
     bottom: -20px;
-    right: 50%;
-    transform: translateX(50%);
+    text-align: center;
 }
 </style>
 <div class="header">
