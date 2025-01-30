@@ -55,7 +55,14 @@ def calculate_hours(start, end):
         end_time = datetime.strptime(end, format_str)
         if start_time >= end_time:
             end_time += timedelta(days=1)
-        return (end_time - start_time).seconds / 3600
+        
+        hours = (end_time - start_time).seconds / 3600
+        
+        # Deduct 0.5 hours (30 min) unpaid break for shifts over 6 hours
+        if hours > 6:
+            hours -= 0.5
+        
+        return hours
     except ValueError:
         return 0
 
