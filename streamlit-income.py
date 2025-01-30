@@ -74,6 +74,11 @@ def apply_penalty_rates(start, end, hourly_rate):
     penalty_income = penalty_hours * hourly_rate * PENALTY_RATE_MULTIPLIER
     return base_hours, regular_income, penalty_income
 
+def format_time_input(time_str):
+    if len(time_str) == 2 and ':' not in time_str:
+        return time_str + ":"
+    return time_str
+
 # Learn Section Functions
 def learn_entitlements():
     st.title("Learn Your Entitlements")
