@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from fpdf import FPDF
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # Configure the Streamlit page
 st.set_page_config(
@@ -273,12 +273,21 @@ else:
     col1, col2 = st.columns(2)
     
     # Income Form (Left Column)
+    start_time_placeholder = "HH:MM"
+    end_time_placeholder = "HH:MM"
     with col1:
         st.header("Income Form")
         position = st.selectbox("Position Type", ["Full-time", "Part-time", "Casual"], index=st.session_state.get("edit_position_index", 0))
         shift_type = st.selectbox("Shift Type", ["Day", "Afternoon", "Night"], index=st.session_state.get("edit_shift_type_index", 0))
-        start_time = st.text_input("Start Time (HH:MM AM/PM):", st.session_state.get("edit_start_time", "09:00 AM"))
-        end_time = st.text_input("End Time (HH:MM AM/PM):", st.session_state.get("edit_end_time", "05:00 PM"))
+        
+        start_time_input = st.text_input("Start Time:", value=st.session_state.get("edit_start_time", ""), placeholder=start_time_placeholder)
+        start_time = format_time_input(start_time_input)
+        start_am_pm = st.selectbox("AM/PM", ["AM", "PM"], index=0 if "AM" in st.session_state.get("edit_start_time", "") else 1, key="start_am_pm")
+        
+        end_time_input = st.text_input("End Time:", value=st.session_state.get("edit_end_time", ""), placeholder=end_time_placeholder)
+        end_time = format_time_input(end_time_input)
+        end_am_pm = st.selectbox("AM/PM", ["AM", "PM"], index=0 if "AM" in st.session_state.get("edit_end_time", "") else 1, key="end_am_pm")
+        
         hourly_rate = st.number_input("Hourly Rate ($)", min_value=0.0, step=0.5, value=st.session_state.get("edit_hourly_rate", 0.0))
         days_worked = st.multiselect("Days Worked", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], default=st.session_state.get("edit_days_worked", []))
         period = st.selectbox("Select Income Period:", ["Weekly", "Fortnightly", "Monthly", "Yearly"], index=st.session_state.get("edit_period_index", 0))
