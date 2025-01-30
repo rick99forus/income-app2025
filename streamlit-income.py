@@ -199,10 +199,10 @@ header_style = """
     position: relative;
     padding: 10px;
     margin-bottom: 10px;
-    background-color: #f0f0f0;
-    color: #333;
+    background-color:rgb(30, 30, 30);
+    color: #ffffff;
     border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.85);
 }
 
 .sidebar-item:hover .sidebar-buttons {
