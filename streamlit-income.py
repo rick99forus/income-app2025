@@ -212,8 +212,9 @@ header_style = """
 .sidebar-buttons {
     display: none;
     position: absolute;
-    bottom: -10px;
-    right: 10px;
+    bottom: -20px;
+    right: 50%;
+    transform: translateX(50%);
 }
 </style>
 <div class="header">
