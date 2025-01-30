@@ -79,6 +79,10 @@ def format_time_input(time_str):
         return time_str + ":"
     return time_str
 
+def combine_time_inputs(time_str, am_pm):
+    time_str = format_time_input(time_str)
+    return f"{time_str} {am_pm}"
+
 # Learn Section Functions
 def learn_entitlements():
     st.title("Learn Your Entitlements")
@@ -286,12 +290,12 @@ else:
         shift_type = st.selectbox("Shift Type", ["Day", "Afternoon", "Night"], index=st.session_state.get("edit_shift_type_index", 0))
         
         start_time_input = st.text_input("Start Time:", value=st.session_state.get("edit_start_time", ""), placeholder=start_time_placeholder)
-        start_time = format_time_input(start_time_input)
-        start_am_pm = st.selectbox("AM/PM", ["AM", "PM"], index=0 if "AM" in st.session_state.get("edit_start_time", "") else 1, key="start_am_pm")
-        
+        start_time_am_pm = st.selectbox("AM/PM", ["AM", "PM"], index=0 if "AM" in st.session_state.get("edit_start_time", "") else 1, key="start_am_pm")
+        combined_start_time = combine_time_inputs(start_time_input, start_time_am_pm)
+
         end_time_input = st.text_input("End Time:", value=st.session_state.get("edit_end_time", ""), placeholder=end_time_placeholder)
-        end_time = format_time_input(end_time_input)
-        end_am_pm = st.selectbox("AM/PM", ["AM", "PM"], index=0 if "AM" in st.session_state.get("edit_end_time", "") else 1, key="end_am_pm")
+        end_time_am_pm = st.selectbox("AM/PM", ["AM", "PM"], index=0 if "AM" in st.session_state.get("edit_end_time", "") else 1, key="end_am_pm")
+        combined_end_time = combine_time_inputs(end_time_input, end_time_am_pm)
         
         hourly_rate = st.number_input("Hourly Rate ($)", min_value=0.0, step=0.5, value=st.session_state.get("edit_hourly_rate", 0.0))
         days_worked = st.multiselect("Days Worked", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], default=st.session_state.get("edit_days_worked", []))
@@ -305,7 +309,7 @@ else:
         else:
             total_hours, total_income, total_penalty_income = 0, 0, 0
             for _ in days_worked:
-                hours, income, penalty_income = apply_penalty_rates(start_time, end_time, hourly_rate)
+                hours, income, penalty_income = apply_penalty_rates(combined_start_time, combined_end_time, hourly_rate)
                 total_hours += hours
                 total_income += income
                 total_penalty_income += penalty_income
